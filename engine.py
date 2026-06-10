@@ -1193,28 +1193,10 @@ def humanize_en(text: str) -> HumanizerResult:
 def humanize_ko(text: str) -> HumanizerResult:
     original = text
 
-    # Count initial metrics
+    # Count initial metrics (same counter as detect_ko, so before-score == detect score)
     sentences_before = split_sentences_ko(text)
-    init_conn = sum(
-        1 for s in sentences_before
-        if _KO_CONNECTOR_PATTERN.match(s.strip())
-    )
-    init_auto_count = (
-        sum(1 for s in split_sentences_ko(text) if _KO_OPENER_RE.search(s))
-        + sum(1 for s in split_sentences_ko(text) if _KO_CLOSER_RE.search(s))
-        + sum(1 for s in split_sentences_ko(text) if _KO_CHATBOT_RE.search(s))
-        + sum(1 for s in split_sentences_ko(text) if _KO_P11_FILLER_SENT.search(s))
-        + sum(len(p.findall(text)) for p, _ in _KO_MODIFIER_STACKS)
-    )
-    p06_all = len(_P06_PATTERN.findall(text))
-    init_flag_count = (
-        len(_P05_PATTERN.findall(text))
-        + (p06_all if p06_all >= 3 else 0)
-        + sum(1 for p in _P09_PATTERNS_KO for _ in [p.search(text)] if _)
-        + sum(1 for p in _P10_PATTERNS_KO for _ in [p.search(text)] if _)
-        + sum(1 for p in _P11_PATTERNS_KO for _ in [p.search(text)] if _)
-    )
-    metrics_before = compute_metrics_ko(text, init_auto_count + init_flag_count, init_conn)
+    init_patterns, init_conn = _count_ko_patterns(text, sentences_before)
+    metrics_before = compute_metrics_ko(text, init_patterns, init_conn)
 
     # Safe Auto
     converted, changes, auto_pattern_count, connector_count = _apply_ko_safe_auto(text)
@@ -1301,16 +1283,33 @@ def detect_en(text: str) -> Metrics:
     return compute_metrics_en(text, patterns, conn)
 
 
-def detect_ko(text: str) -> Metrics:
-    sentences = split_sentences_ko(text)
+def _count_ko_patterns(text: str, sentences: list[str]) -> tuple[int, int]:
+    """Count Korean AI-writing patterns + sentence-initial connectors.
+
+    Shared by detect_ko and humanize_ko so the score is consistent and counts
+    the full pattern set (P04 translationese, P09/P10/P11, P12, P13 included).
+    """
     conn = sum(1 for s in sentences if _KO_CONNECTOR_PATTERN.match(s.strip()))
     patterns = (
-        len(_P05_PATTERN.findall(text))
-        + len(_P06_PATTERN.findall(text))
-        + sum(1 for s in sentences if _KO_OPENER_RE.search(s))
-        + sum(1 for s in sentences if _KO_CLOSER_RE.search(s))
-        + sum(len(p.findall(text)) for p, _ in _KO_MODIFIER_STACKS)
+        len(_P05_PATTERN.findall(text))                              # P05 hyperbole
+        + len(_P06_PATTERN.findall(text))                            # P06 AI vocabulary
+        + sum(1 for s in sentences if _KO_OPENER_RE.search(s))       # P03 lecture openers
+        + sum(1 for s in sentences if _KO_CLOSER_RE.search(s))       # P03 lecture closers
+        + sum(len(p.findall(text)) for p, _ in _KO_MODIFIER_STACKS)  # P08 modifier stacks
+        + sum(1 for s in sentences if _KO_CHATBOT_RE.search(s))      # P12 chatbot
+        + len(_KO_P11_FILLER_SENT.findall(text))                     # P11 foresight filler
+        + sum(1 for p in _P09_PATTERNS_KO if p.search(text))         # P09 misconception
+        + sum(1 for p in _P10_PATTERNS_KO if p.search(text))         # P10 generalization
+        + sum(1 for p in _P11_PATTERNS_KO if p.search(text))         # P11 foresight
+        + sum(len(p.findall(text)) for p, _ in _KO_FORMULAIC)        # P04 translationese
+        + len(_KO_COMMA_AFTER_CONNECTOR.findall(text))               # P13 comma-after-connector
     )
+    return patterns, conn
+
+
+def detect_ko(text: str) -> Metrics:
+    sentences = split_sentences_ko(text)
+    patterns, conn = _count_ko_patterns(text, sentences)
     return compute_metrics_ko(text, patterns, conn)
 
 

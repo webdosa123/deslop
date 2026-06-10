@@ -45,12 +45,12 @@ The AI score measures the density of *known* AI-writing tics. It is not a forens
 
 | | per-sample score | avg |
 |---|---|---|
-| 🇰🇷 Korean, AI-sounding | 85, 76 | 62.6 |
-| 🇰🇷 Korean, human | 5, 0, 11 | 5.4 |
+| 🇰🇷 Korean, AI-sounding | 93, 89 | 91 |
+| 🇰🇷 Korean, human | 6, 0, 11 | 5.7 |
 | 🇺🇸 English, AI-sounding | 55, 75 | 64.9 |
 | 🇺🇸 English, human | 0, 4 | 1.9 |
 
-On a larger, deliberately hard set of 35 English samples (marketing, blogs, essays, emails, diaries, reviews, plus sophisticated human writing meant to trip it up), AI text averages about 39 and human text about 9, a gap of roughly 30 points. No human sample reaches the "many AI patterns" band.
+On larger, deliberately hard sets (35 samples per language, spanning marketing, blogs, essays, emails, diaries, reviews, plus sophisticated human writing meant to trip it up), AI text averages about 45 in Korean and 39 in English, against roughly 10 and 9 for human text. That is a gap of about 35 and 30 points. No human sample, in either language, reaches the "many AI patterns" band.
 
 What it misses: a draft that has already been edited, or written in a deliberately plain voice, can score low and slip past. That is by design, since those drafts genuinely read more human. None of this is Turnitin or GPTZero. The number points you at rough spots. It does not certify anything.
 
