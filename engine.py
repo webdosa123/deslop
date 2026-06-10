@@ -627,6 +627,38 @@ _E02_PATTERNS = [
     re.compile(r'\bit behooves\b', re.IGNORECASE),
 ]
 
+# E03b — AI content-marketing / SEO-blog clichés. Multi-word phrases that are
+# heavily over-represented in machine-written blog, marketing, and listicle copy
+# and rare in genuine human prose (casual or literary). Detection-only signals.
+_EN_CLICHE_PATTERNS = [
+    re.compile(r"\bin this (?:comprehensive |ultimate |complete |detailed |step-by-step )?(?:guide|post|article|tutorial)\b", re.IGNORECASE),
+    re.compile(r"\blet'?s dive (?:right )?in\b", re.IGNORECASE),
+    re.compile(r"\bby the end of this (?:guide|post|article|tutorial|video)\b", re.IGNORECASE),
+    re.compile(r"\bwe'?ll (?:walk|take) you through\b", re.IGNORECASE),
+    re.compile(r"\beverything you need to know\b", re.IGNORECASE),
+    re.compile(r"\bhave you ever (?:wanted|wondered|felt|struggled|thought)\b", re.IGNORECASE),
+    re.compile(r"\bare you (?:looking|tired|ready|struggling)\b", re.IGNORECASE),
+    re.compile(r"\byou'?re not alone\b", re.IGNORECASE),
+    re.compile(r"\bhidden gems\b", re.IGNORECASE),
+    re.compile(r"\boff the beaten path\b", re.IGNORECASE),
+    re.compile(r"\b(?:take your breath away|breathtaking)\b", re.IGNORECASE),
+    re.compile(r"\bunlock (?:the |your )?(?:power|potential|secret|full)\b", re.IGNORECASE),
+    re.compile(r"\btake your \w+ to the next level\b", re.IGNORECASE),
+    re.compile(r"\blook no further\b", re.IGNORECASE),
+    re.compile(r"\bwhether you'?re an? \w+ or\b", re.IGNORECASE),
+    re.compile(r"\bno longer optional\b", re.IGNORECASE),
+    re.compile(r"\b(?:has|have) never been (?:more|easier|simpler)\b", re.IGNORECASE),
+    re.compile(r"\bstate-of-the-art\b", re.IGNORECASE),
+    re.compile(r"\bso grab your\b", re.IGNORECASE),
+    re.compile(r"\blet'?s get started\b", re.IGNORECASE),
+    re.compile(r"\bwe'?ve rounded up\b", re.IGNORECASE),
+    re.compile(r"\bmust-(?:see|visit|try|have|read)\b", re.IGNORECASE),
+    re.compile(r"\bin today'?s (?:fast-paced|rapidly evolving|ever-changing|ever-evolving|digital|modern|competitive|connected) \w+\b", re.IGNORECASE),
+    re.compile(r"\bnow more than ever\b", re.IGNORECASE),
+    re.compile(r"\bstay ahead of the (?:curve|competition|game)\b", re.IGNORECASE),
+    re.compile(r"\bset (?:you|yourself|your \w+) apart\b", re.IGNORECASE),
+]
+
 
 def _apply_en_flags(text: str, sentences: list[str]) -> tuple[str, list[Flag], int]:
     flags: list[Flag] = []
@@ -1103,29 +1135,10 @@ def _check_p14(sentences: list[str]) -> Optional[Flag]:
 def humanize_en(text: str) -> HumanizerResult:
     original = text
 
-    # Count initial metrics
+    # Count initial metrics (same counter as detect_en, so before-score == detect score)
     sentences_before = split_sentences_en(text)
-    init_conn = sum(
-        1 for s in sentences_before
-        if _EN_CONNECTOR_PATTERN.match(s.strip())
-    )
-    init_flags_count = (
-        len(_E05_PATTERN.findall(text))
-        + len(_E06_T1_PATTERN.findall(text))
-        + sum(1 for p in _E09_PATTERNS for _ in [p.search(text)] if _)
-        + sum(1 for p in _E10_PATTERNS for _ in [p.search(text)] if _)
-        + sum(1 for p in _E11_PATTERNS for _ in [p.search(text)] if _)
-    )
-    init_auto_count = (
-        sum(1 for s in split_sentences_en(text) if _EN_OPENER_RE.search(s))
-        + sum(1 for s in split_sentences_en(text) if _EN_CLOSER_RE.search(s))
-        + sum(1 for s in split_sentences_en(text) if _EN_CHATBOT_RE.search(s))
-        + sum(1 for s in split_sentences_en(text) if _EN_E09_OPENER_STRIP.match(s.strip()))
-        + sum(1 for s in split_sentences_en(text) if _EN_E11_OPENER_STRIP.match(s.strip()))
-        + len(_EN_HAS_POTENTIAL_RE.findall(text))
-        + len(_EN_MODIFIER_STACKS.findall(text))
-    )
-    metrics_before = compute_metrics_en(text, init_auto_count + init_flags_count, init_conn)
+    init_patterns, init_conn = _count_en_patterns(text, sentences_before)
+    metrics_before = compute_metrics_en(text, init_patterns, init_conn)
 
     # Safe Auto
     converted, changes, auto_pattern_count, connector_count = _apply_en_safe_auto(text)
@@ -1254,16 +1267,37 @@ def humanize_ko(text: str) -> HumanizerResult:
     )
 
 
-def detect_en(text: str) -> Metrics:
-    sentences = split_sentences_en(text)
+def _count_en_patterns(text: str, sentences: list[str]) -> tuple[int, int]:
+    """Count AI-writing patterns + sentence-initial connectors.
+
+    Shared by detect_en and humanize_en so the score is consistent. Counts the
+    full set of detectable patterns (not just a subset), which is what makes the
+    AI-density signal track reality on English text.
+    """
     conn = sum(1 for s in sentences if _EN_CONNECTOR_PATTERN.match(s.strip()))
     patterns = (
-        len(_E05_PATTERN.findall(text))
-        + len(_E06_T1_PATTERN.findall(text))
-        + sum(1 for s in sentences if _EN_OPENER_RE.search(s))
-        + sum(1 for s in sentences if _EN_CLOSER_RE.search(s))
-        + len(_EN_MODIFIER_STACKS.findall(text))
+        len(_E05_PATTERN.findall(text))                          # E05 hyperbole
+        + len(_E06_T1_PATTERN.findall(text))                     # E06 inflated vocab (T1)
+        + len(_E06_T2_PATTERN.findall(text))                     # E06 inflated vocab (T2)
+        + sum(1 for s in sentences if _EN_OPENER_RE.search(s))   # E03 lecture openers
+        + sum(1 for s in sentences if _EN_CLOSER_RE.search(s))   # E03 lecture closers
+        + len(_EN_MODIFIER_STACKS.findall(text))                 # E08 modifier stacks
+        + len(_EN_MOST_REDUNDANT.findall(text))                  # E08 most + absolute
+        + sum(len(p.findall(text)) for p, _ in _EN_FORMULAIC)    # E04 formulaic filler
+        + sum(1 for s in sentences if _EN_CHATBOT_RE.search(s))  # E12 chatbot sign-offs
+        + sum(1 for p in _E02_PATTERNS if p.search(text))        # E02 academic register
+        + sum(1 for p in _E09_PATTERNS if p.search(text))        # E09 misconception
+        + sum(1 for p in _E10_PATTERNS if p.search(text))        # E10 sweeping generalization
+        + sum(1 for p in _E11_PATTERNS if p.search(text))        # E11 foresight
+        + len(_EN_COMMA_AFTER_CONNECTOR.findall(text))           # E13 comma-after-connector
+        + sum(1 for p in _EN_CLICHE_PATTERNS if p.search(text))  # E03b content-marketing clichés
     )
+    return patterns, conn
+
+
+def detect_en(text: str) -> Metrics:
+    sentences = split_sentences_en(text)
+    patterns, conn = _count_en_patterns(text, sentences)
     return compute_metrics_en(text, patterns, conn)
 
 

@@ -33,6 +33,8 @@ KO_HUMAN = [
 EN_AI = [
     "This innovative solution leverages cutting-edge technology to seamlessly transform "
     "productivity and empower teams. Ultimately, it represents a groundbreaking paradigm shift.",
+    "In today's rapidly evolving landscape, it is important to note that organizations must "
+    "continuously adapt. Furthermore, data-driven strategies are more crucial than ever.",
 ]
 
 EN_HUMAN = [
@@ -66,10 +68,14 @@ def test_ko_separation_is_meaningful():
     hu = _avg([engine.detect_ko(t).ai_score for t in KO_HUMAN])
     assert ai - hu > 30
 
+def test_en_clear_ai_scores_high():
+    for t in EN_AI:
+        assert engine.detect_en(t).ai_score > 40
+
 def test_en_separation_is_meaningful():
     ai = _avg([engine.detect_en(t).ai_score for t in EN_AI])
     hu = _avg([engine.detect_en(t).ai_score for t in EN_HUMAN])
-    assert ai - hu > 25
+    assert ai - hu > 40
 
 
 # --- humanize never raises the score; human text is left ~untouched ----------
