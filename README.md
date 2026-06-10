@@ -3,7 +3,11 @@
 <p align="center"><strong>Strip the AI slop. Keep your meaning.</strong></p>
 
 <p align="center">
-결정론적 · 100% 오프라인 · API 키 불필요 — 한국어 / 영어 AI 글쓰기 <b>정리 · 탐지 · 코치</b>
+  <b>English</b> · <a href="README_KR.md">한국어</a>
+</p>
+
+<p align="center">
+Deterministic · 100% offline · no API key — a Korean &amp; English AI-writing <b>cleaner, detector, and coach</b>.
 </p>
 
 <p align="center">
@@ -15,17 +19,14 @@
 
 ---
 
-> ✍️ **이 도구는 글쓰기 품질·AI 리터러시 도구입니다** — *왜* 글이 AI처럼 읽히는지 이해하고 더 나은 글을 쓰기 위한 것입니다.
-> **AI 탐지기를 우회하거나 AI 글을 사람 글로 위장하는 용도가 아닙니다.**
->
-> This is a **writing-quality and AI-literacy tool** to understand *why* text reads as AI-generated and to write better prose.
+> ✍️ **deslop is a writing-quality and AI-literacy tool** — it helps you understand *why* prose reads as AI-generated and write better.
 > It is **not** for evading AI detectors or passing AI text off as human-written. Detector evasion is an explicit non-goal.
 
 ---
 
 ## What it does
 
-deslop finds the surface patterns that make prose read as machine-written, rewrites the safe ones, and explains the rest — in **Korean and English**, fully **deterministically** and **offline**. No API key, no network, no model calls, no third-party dependencies in the core.
+deslop finds the surface patterns that make prose read as machine-written, rewrites the safe ones, and explains the rest — in **Korean and English**, fully **deterministically** and **offline**. No API key, no network, no model calls, and no third-party dependencies in the core.
 
 | | |
 |---|---|
@@ -37,7 +38,7 @@ The **coach** is the point: a score alone tells you little, but "this sentence s
 
 ## Be honest about the score
 
-deslop's AI score is a **density signal for known AI-writing tics** — not a forensic detector. Here is what it actually produces on synthetic samples (you can reproduce this with `pytest`):
+deslop's AI score is a **density signal for known AI-writing tics** — not a forensic detector. Here is what it actually produces on synthetic samples (reproduce with `pytest`):
 
 | | per-sample AI score | avg |
 |---|---|---|
