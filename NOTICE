@@ -1,0 +1,23 @@
+deslop — third-party acknowledgements
+=====================================
+
+deslop is original work (MIT, see LICENSE). The AI-writing pattern taxonomy
+and the human/AI signals it scores draw on the following prior work, none of
+which is redistributed here verbatim:
+
+1. stop-slop — https://github.com/hardikpandya/stop-slop  (MIT)
+   The English "slop" pattern catalogue that inspired deslop's approach.
+   deslop's Korean and English pattern sets were reimagined and reimplemented
+   as deterministic transforms; no stop-slop source text is copied.
+
+2. "Signs of AI writing" — Wikipedia editing guide  (CC BY-SA 4.0)
+   Used as a reference when compiling the pattern descriptions in PATTERNS.md.
+   PATTERNS.md prose that paraphrases this guide is noted there; see PATTERNS.md.
+
+3. KatFishNet / KatFish — "Detecting LLM-Generated Korean Text through
+   Linguistic Feature Analysis", ACL 2025 (arXiv:2503.00032)
+   Cited as the source for the observation that Korean-specific signals
+   (spacing, POS diversity, comma usage) help separate machine-written Korean
+   text. deslop reuses none of its code or dataset; it is a citation only.
+
+All trademarks and project names belong to their respective owners.

@@ -1,0 +1,5 @@
+# deslop core (engine.py, deslop.py) has ZERO third-party dependencies —
+# pure Python standard library. Nothing to install to use the library or CLI.
+#
+# The optional web demo (app.py) needs Streamlit:
+streamlit>=1.30
